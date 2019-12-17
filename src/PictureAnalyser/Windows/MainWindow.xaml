@@ -1,0 +1,49 @@
+﻿<mah:MetroWindow x:Class="PictureAnalyser.MainWindow"
+                 x:ClassModifier="internal"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:local="clr-namespace:PictureAnalyser"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:fluent="urn:fluent-ribbon"
+                 mc:Ignorable="d"
+                 Title="PictureAnalyser"
+                 Height="720" Width="1024"
+                 WindowStartupLocation="CenterScreen"
+                 TitleCharacterCasing="Normal"
+                 WindowTitleBrush="{DynamicResource {x:Static local:ResourceKeys.Background}}">
+
+    <mah:MetroWindow.TitleTemplate>
+        <DataTemplate>
+            <fluent:RibbonTitleBar x:Name="RibbonTitleBar"
+                                   VerticalContentAlignment="Center"
+                                   HeaderAlignment="Center"
+
+                                   Header="{Binding Path=Title, RelativeSource={RelativeSource AncestorType=Window}}" />
+        </DataTemplate>
+    </mah:MetroWindow.TitleTemplate>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <fluent:Ribbon>
+
+            <!--Tabs-->
+            <fluent:RibbonTabItem Header="Основное">
+                <fluent:RibbonGroupBox Header="Файл">
+                    <fluent:Button Header="Открыть изображение"
+                                   Command="{Binding OpenImageCommand}" />
+
+                </fluent:RibbonGroupBox>
+            </fluent:RibbonTabItem>
+        </fluent:Ribbon>
+
+        <local:ImageEngine Grid.Row="1"
+                           ImagePath="{Binding ImagePath}" />
+    </Grid>
+
+</mah:MetroWindow>
