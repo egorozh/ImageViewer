@@ -7,19 +7,30 @@ namespace PictureAnalyser
 {
     public partial class ImageEngine
     {
-        private decimal _scale = 1;
+        #region Private Fields
+
+        private decimal _resolution = 1;
         private BitmapImage _imageSource;
+
+        #endregion
 
         #region Dependency Properties
 
         public static readonly DependencyProperty ImagePathProperty = DependencyProperty.Register(
-            "ImagePath", typeof(string), typeof(ImageEngine), new PropertyMetadata(default(string), ImagePathChanged));
+            nameof(ImagePath), typeof(string), typeof(ImageEngine),
+            new PropertyMetadata(default(string), ImagePathChanged));
 
         private static void ImagePathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is ImageEngine engine && e.NewValue is string path)
                 engine.ImagePathChanged(path);
         }
+
+        public static readonly DependencyProperty MinimumResolutionProperty = DependencyProperty.Register(
+            nameof(MinimumResolution), typeof(decimal), typeof(ImageEngine), new PropertyMetadata(0.01m));
+
+        public static readonly DependencyProperty MaximumResolutionProperty = DependencyProperty.Register(
+            nameof(MaximumResolution), typeof(decimal), typeof(ImageEngine), new PropertyMetadata(50m));
 
         #endregion
 
@@ -29,6 +40,18 @@ namespace PictureAnalyser
         {
             get => (string) GetValue(ImagePathProperty);
             set => SetValue(ImagePathProperty, value);
+        }
+
+        public decimal MinimumResolution
+        {
+            get => (decimal) GetValue(MinimumResolutionProperty);
+            set => SetValue(MinimumResolutionProperty, value);
+        }
+
+        public decimal MaximumResolution
+        {
+            get => (decimal) GetValue(MaximumResolutionProperty);
+            set => SetValue(MaximumResolutionProperty, value);
         }
 
         #endregion
@@ -58,9 +81,11 @@ namespace PictureAnalyser
 
             Image.Source = _imageSource;
 
-            _scale = 1;
+            _resolution = 1;
             UpdateScale();
         }
+
+        #region Scalling
 
         private void ImageEngine_MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -72,15 +97,15 @@ namespace PictureAnalyser
 
                 if (delta > 0)
                 {
-                    if (_scale >= 200) return;
+                    if (_resolution >= MaximumResolution) return;
 
-                    _scale += GetAddedDeltaResolution(_scale);
+                    _resolution += GetAddedDeltaResolution(_resolution);
                 }
                 else
                 {
-                    if (_scale <= 0.0001m) return;
+                    if (_resolution <= MinimumResolution) return;
 
-                    _scale -= GetSubtractDeltaResolution(_scale);
+                    _resolution -= GetSubtractDeltaResolution(_resolution);
                 }
 
                 UpdateScale();
@@ -89,35 +114,37 @@ namespace PictureAnalyser
 
         private static decimal GetAddedDeltaResolution(decimal resolution)
         {
-            var decLog = Math.Log10((double)resolution);
+            var decLog = Math.Log10((double) resolution);
             var truncate = Math.Truncate(decLog);
 
             if (decLog < 0 && decLog != truncate) truncate = truncate - 1;
 
-            return (decimal)Math.Pow(10, truncate);
+            return (decimal) Math.Pow(10, truncate);
         }
-        
+
         private static decimal GetSubtractDeltaResolution(decimal resolution)
         {
-            var decLog = Math.Log10((double)resolution);
+            var decLog = Math.Log10((double) resolution);
 
             var truncate = Math.Truncate(decLog);
 
             if (decLog < 0 && decLog != truncate) truncate = truncate - 1;
 
             return decLog == truncate
-                ? (decimal)Math.Pow(10, truncate - 1)
-                : (decimal)Math.Pow(10, truncate);
+                ? (decimal) Math.Pow(10, truncate - 1)
+                : (decimal) Math.Pow(10, truncate);
         }
 
         private void UpdateScale()
         {
-            var width = _imageSource.PixelWidth * _scale;
-            var height = _imageSource.PixelHeight * _scale;
+            var width = _imageSource.PixelWidth * _resolution;
+            var height = _imageSource.PixelHeight * _resolution;
 
-            Host.Width =  (double) width;
+            Host.Width = (double) width;
             Host.Height = (double) height;
         }
+
+        #endregion
 
         #endregion
     }
