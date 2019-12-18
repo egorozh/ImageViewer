@@ -12,7 +12,9 @@
                  Height="720" Width="1024"
                  WindowStartupLocation="CenterScreen"
                  TitleCharacterCasing="Normal"
-                 WindowTitleBrush="{DynamicResource {x:Static local:ResourceKeys.Background}}">
+                 WindowTitleBrush="{DynamicResource {x:Static local:ResourceKeys.Background}}"
+
+                 WindowState="Maximized">
 
     <mah:MetroWindow.TitleTemplate>
         <DataTemplate>
@@ -35,8 +37,18 @@
             <!--Tabs-->
             <fluent:RibbonTabItem Header="Основное">
                 <fluent:RibbonGroupBox Header="Файл">
+
+                    <!--Open Image Button-->
                     <fluent:Button Header="Открыть изображение"
-                                   Command="{Binding OpenImageCommand}" />
+                                   Command="{Binding OpenImageCommand}">
+                        <fluent:Button.LargeIcon>
+
+                            <Path Fill="DarkOrange"
+                                  Stretch="Uniform"
+                                  Data="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z" />
+                            
+                        </fluent:Button.LargeIcon>
+                    </fluent:Button>
 
                 </fluent:RibbonGroupBox>
             </fluent:RibbonTabItem>
