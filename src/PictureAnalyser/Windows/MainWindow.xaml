@@ -55,7 +55,7 @@
         </fluent:Ribbon>
 
         <local:ImageEngine Grid.Row="1"
-                           ImagePath="{Binding ImagePath}" />
+                            ImagePath="{Binding ImagePath}" />
     </Grid>
 
 </mah:MetroWindow>

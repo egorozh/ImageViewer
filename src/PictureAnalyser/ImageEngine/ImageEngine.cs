@@ -2,11 +2,12 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PictureAnalyser
 {
-    public partial class ImageEngine
+    public class ImageEngine : Grid
     {
         #region Private Fields
 
@@ -42,6 +43,15 @@ namespace PictureAnalyser
 
         #endregion
 
+        #region Internal Properties
+
+        internal ScrollViewer ScrollViewer { get; }
+        internal Grid Host { get; }
+        internal Image Image { get; }
+        internal Canvas Canvas { get; }
+
+        #endregion
+
         #region Public Properties
 
         public Uri ImagePath
@@ -68,7 +78,30 @@ namespace PictureAnalyser
 
         public ImageEngine()
         {
-            InitializeComponent();
+            Background = Brushes.DimGray;
+
+            ScrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+
+            Host = new Grid
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            Image = new Image();
+            Canvas = new Canvas {Background = Brushes.Transparent};
+
+            Host.Children.Add(Image);
+            Host.Children.Add(Canvas);
+
+            ScrollViewer.Content = Host;
+
+            Children.Add(ScrollViewer);
+
 
             PreviewMouseWheel += ImageEngine_MouseWheel;
 
