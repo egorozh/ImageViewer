@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
@@ -12,17 +13,24 @@ namespace PictureAnalyser
         private decimal _resolution = 1;
         private BitmapImage _imageSource;
 
+        /// <summary>
+        /// Предыдущее значение позиции указателя мыши
+        /// </summary>
+        private Point _prevPoint;
+
+        private bool _isTranslate;
+
         #endregion
 
         #region Dependency Properties
 
         public static readonly DependencyProperty ImagePathProperty = DependencyProperty.Register(
-            nameof(ImagePath), typeof(string), typeof(ImageEngine),
-            new PropertyMetadata(default(string), ImagePathChanged));
+            nameof(ImagePath), typeof(Uri), typeof(ImageEngine),
+            new PropertyMetadata(default(Uri), ImagePathChanged));
 
         private static void ImagePathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is ImageEngine engine && e.NewValue is string path)
+            if (d is ImageEngine engine && e.NewValue is Uri path)
                 engine.ImagePathChanged(path);
         }
 
@@ -36,9 +44,9 @@ namespace PictureAnalyser
 
         #region Public Properties
 
-        public string ImagePath
+        public Uri ImagePath
         {
-            get => (string) GetValue(ImagePathProperty);
+            get => (Uri) GetValue(ImagePathProperty);
             set => SetValue(ImagePathProperty, value);
         }
 
@@ -63,20 +71,22 @@ namespace PictureAnalyser
             InitializeComponent();
 
             PreviewMouseWheel += ImageEngine_MouseWheel;
+
+            ScrollViewer.PreviewMouseLeftButtonDown += ImageEngine_MouseLeftButtonDown;
+            PreviewMouseMove += ImageEngine_MouseMove;
+            PreviewMouseLeftButtonUp += ImageEngine_MouseLeftButtonUp;
         }
 
         #endregion
 
         #region Private Methods
 
-        private void ImagePathChanged(string imagePath)
+        private void ImagePathChanged(Uri source)
         {
-            var uri = new Uri(imagePath, UriKind.RelativeOrAbsolute);
-
             _imageSource = new BitmapImage();
 
             _imageSource.BeginInit();
-            _imageSource.UriSource = uri;
+            _imageSource.UriSource = source;
             _imageSource.EndInit();
 
             Image.Source = _imageSource;
@@ -85,14 +95,48 @@ namespace PictureAnalyser
             UpdateScale();
         }
 
+        private void ImageEngine_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _prevPoint = e.GetPosition(this);
+
+            if (e.OriginalSource == Canvas || e.OriginalSource == ScrollViewer)
+            {
+                Mouse.Capture(this);
+                _isTranslate = true;
+            }
+        }
+
+        private void ImageEngine_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_isTranslate)
+            {
+                var mousePos = e.GetPosition(this);
+
+                ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.HorizontalOffset - (mousePos.X - _prevPoint.X));
+                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - (mousePos.Y - _prevPoint.Y));
+
+                _prevPoint = mousePos;
+
+                Mouse.SetCursor(Cursors.Hand);
+            }
+        }
+
+        private void ImageEngine_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            Mouse.SetCursor(Cursors.Arrow);
+            Mouse.Capture(null);
+
+            _isTranslate = false;
+        }
+
         #region Scalling
 
         private void ImageEngine_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            e.Handled = true;
+
             if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                e.Handled = true;
-
                 var delta = e.Delta;
 
                 if (delta > 0)
@@ -109,6 +153,10 @@ namespace PictureAnalyser
                 }
 
                 UpdateScale();
+            }
+            else
+            {
+                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - e.Delta);
             }
         }
 

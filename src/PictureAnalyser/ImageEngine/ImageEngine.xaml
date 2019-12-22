@@ -10,16 +10,16 @@
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Auto">
+                      HorizontalScrollBarVisibility="Auto"
+                      PanningMode="Both"
+                      x:Name="ScrollViewer">
 
             <Grid x:Name="Host"
                   VerticalAlignment="Center"
                   HorizontalAlignment="Center">
                 <Image x:Name="Image" />
-                <Canvas x:Name="Canvas" />
+                <Canvas x:Name="Canvas" Background="Transparent"/>
             </Grid>
         </ScrollViewer>
-
-
     </Grid>
 </UserControl>

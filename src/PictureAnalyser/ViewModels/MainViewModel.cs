@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using System;
+using Microsoft.Win32;
 using Prism.Commands;
 
 namespace PictureAnalyser
@@ -7,7 +8,7 @@ namespace PictureAnalyser
     {
         #region Public Properties
 
-        public string ImagePath { get; set; }
+        public Uri ImagePath { get; set; }
 
         #endregion
 
@@ -41,7 +42,8 @@ namespace PictureAnalyser
 
             var path = openFileDialog.FileName;
 
-            ImagePath = path;
+            ImagePath = new Uri(path, UriKind.RelativeOrAbsolute);
+
         }
 
         #endregion
