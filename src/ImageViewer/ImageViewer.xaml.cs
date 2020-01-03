@@ -1,21 +1,19 @@
-п»їusing System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace PictureAnalyser
+namespace ImageViewer
 {
-    public class ImageEngine : Grid
+    public partial class ImageViewer
     {
         #region Private Fields
 
-        private decimal _resolution = 1;
         private BitmapImage _imageSource;
 
         /// <summary>
-        /// РџСЂРµРґС‹РґСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ РїРѕР·РёС†РёРё СѓРєР°Р·Р°С‚РµР»СЏ РјС‹С€Рё
+        /// Предыдущее значение позиции указателя мыши
         /// </summary>
         private Point _prevPoint;
 
@@ -26,33 +24,39 @@ namespace PictureAnalyser
         #region Dependency Properties
 
         public static readonly DependencyProperty ImagePathProperty = DependencyProperty.Register(
-            nameof(ImagePath), typeof(Uri), typeof(ImageEngine),
+            nameof(ImagePath), typeof(Uri), typeof(ImageViewer),
             new PropertyMetadata(default(Uri), ImagePathChanged));
 
         private static void ImagePathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is ImageEngine engine && e.NewValue is Uri path)
-                engine.ImagePathChanged(path);
+            if (d is ImageViewer viewer && e.NewValue is Uri path)
+                viewer.ImagePathChanged(path);
         }
 
-        public static readonly DependencyProperty MinimumResolutionProperty = DependencyProperty.Register(
-            nameof(MinimumResolution), typeof(decimal), typeof(ImageEngine), new PropertyMetadata(0.01m));
+        public static readonly DependencyProperty MinimumScaleProperty = DependencyProperty.Register(
+            nameof(MinimumScale), typeof(decimal), typeof(ImageViewer), new PropertyMetadata(1m));
 
-        public static readonly DependencyProperty MaximumResolutionProperty = DependencyProperty.Register(
-            nameof(MaximumResolution), typeof(decimal), typeof(ImageEngine), new PropertyMetadata(50m));
+        public static readonly DependencyProperty MaximumScaleProperty = DependencyProperty.Register(
+            nameof(MaximumScale), typeof(decimal), typeof(ImageViewer), new PropertyMetadata(5000m));
 
-        #endregion
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
+            nameof(Scale), typeof(decimal), typeof(ImageViewer), new PropertyMetadata(100m, ScaleChanged));
 
-        #region Internal Properties
-
-        internal ScrollViewer ScrollViewer { get; }
-        internal Grid Host { get; }
-        internal Image Image { get; }
-        internal Canvas Canvas { get; }
+        private static void ScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ImageViewer viewer && e.NewValue is decimal scale)
+                viewer.ScaleChanged(scale);
+        }
 
         #endregion
 
         #region Public Properties
+
+        public decimal Scale
+        {
+            get => (decimal) GetValue(ScaleProperty);
+            private set => SetValue(ScaleProperty, value);
+        }
 
         public Uri ImagePath
         {
@@ -60,48 +64,25 @@ namespace PictureAnalyser
             set => SetValue(ImagePathProperty, value);
         }
 
-        public decimal MinimumResolution
+        public decimal MinimumScale
         {
-            get => (decimal) GetValue(MinimumResolutionProperty);
-            set => SetValue(MinimumResolutionProperty, value);
+            get => (decimal) GetValue(MinimumScaleProperty);
+            set => SetValue(MinimumScaleProperty, value);
         }
 
-        public decimal MaximumResolution
+        public decimal MaximumScale
         {
-            get => (decimal) GetValue(MaximumResolutionProperty);
-            set => SetValue(MaximumResolutionProperty, value);
+            get => (decimal) GetValue(MaximumScaleProperty);
+            set => SetValue(MaximumScaleProperty, value);
         }
 
         #endregion
 
         #region Constructor
 
-        public ImageEngine()
+        public ImageViewer()
         {
-            Background = Brushes.DimGray;
-
-            ScrollViewer = new ScrollViewer
-            {
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
-            };
-
-            Host = new Grid
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-
-            Image = new Image();
-            Canvas = new Canvas {Background = Brushes.Transparent};
-
-            Host.Children.Add(Image);
-            Host.Children.Add(Canvas);
-
-            ScrollViewer.Content = Host;
-
-            Children.Add(ScrollViewer);
-
+            InitializeComponent();
 
             PreviewMouseWheel += ImageEngine_MouseWheel;
 
@@ -116,16 +97,11 @@ namespace PictureAnalyser
 
         private void ImagePathChanged(Uri source)
         {
-            _imageSource = new BitmapImage();
-
-            _imageSource.BeginInit();
-            _imageSource.UriSource = source;
-            _imageSource.EndInit();
+            _imageSource = new BitmapImage(source);
 
             Image.Source = _imageSource;
 
-            _resolution = 1;
-            UpdateScale();
+            ScaleChanged(Scale);
         }
 
         private void ImageEngine_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -141,6 +117,17 @@ namespace PictureAnalyser
 
         private void ImageEngine_MouseMove(object sender, MouseEventArgs e)
         {
+#if DEBUG
+            //var offsets = GetMousePositionOffsets();
+
+            //if (offsets.HasValue)
+            //    IoC.Instance.Logger.ShowMessage($"X-Offset: {offsets.Value.Item1}%; Y-Offset: {offsets.Value.Item2}%");
+            //else
+            //    IoC.Instance.Logger.ShowMessage(string.Empty);
+
+#endif
+
+
             if (_isTranslate)
             {
                 var mousePos = e.GetPosition(this);
@@ -164,6 +151,15 @@ namespace PictureAnalyser
 
         #region Scalling
 
+        private void ScaleChanged(decimal scale)
+        {
+            var width = _imageSource.PixelWidth * scale / 100m;
+            var height = _imageSource.PixelHeight * scale / 100m;
+
+            Host.Width = (double)width;
+            Host.Height = (double)height;
+        }
+
         private void ImageEngine_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             e.Handled = true;
@@ -174,18 +170,19 @@ namespace PictureAnalyser
 
                 if (delta > 0)
                 {
-                    if (_resolution >= MaximumResolution) return;
+                    if (Scale >= MaximumScale) return;
 
-                    _resolution += GetAddedDeltaResolution(_resolution);
+                    Scale += GetAddedDeltaResolution(Scale / 100m) * 100m;
                 }
                 else
                 {
-                    if (_resolution <= MinimumResolution) return;
+                    if (Scale <= MinimumScale) return;
 
-                    _resolution -= GetSubtractDeltaResolution(_resolution);
+                    Scale -= GetSubtractDeltaResolution(Scale / 100m) * 100m;
                 }
-
-                UpdateScale();
+                
+                ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.ScrollableWidth / 2);
+                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.ScrollableHeight / 2);
             }
             else
             {
@@ -198,7 +195,8 @@ namespace PictureAnalyser
             var decLog = Math.Log10((double) resolution);
             var truncate = Math.Truncate(decLog);
 
-            if (decLog < 0 && decLog != truncate) truncate = truncate - 1;
+            if (decLog < 0 && decLog != truncate)
+                truncate -= 1;
 
             return (decimal) Math.Pow(10, truncate);
         }
@@ -209,23 +207,34 @@ namespace PictureAnalyser
 
             var truncate = Math.Truncate(decLog);
 
-            if (decLog < 0 && decLog != truncate) truncate = truncate - 1;
+            if (decLog < 0 && decLog != truncate)
+                truncate -= 1;
 
             return decLog == truncate
                 ? (decimal) Math.Pow(10, truncate - 1)
                 : (decimal) Math.Pow(10, truncate);
         }
-
-        private void UpdateScale()
-        {
-            var width = _imageSource.PixelWidth * _resolution;
-            var height = _imageSource.PixelHeight * _resolution;
-
-            Host.Width = (double) width;
-            Host.Height = (double) height;
-        }
-
+        
         #endregion
+
+        /// <summary>
+        /// Получение положения указателя мыши относительно холста в процентах
+        /// </summary>
+        /// <returns></returns>
+        private (double, double)? GetMousePositionOffsets()
+        {
+            var position = Mouse.GetPosition(Host);
+
+            if (position.X > 0 && position.Y > 0 && position.X < Host.ActualWidth && position.Y < Host.ActualHeight)
+            {
+                var xOffset = position.X / Host.ActualWidth * 100.0;
+                var yOffset = position.Y / Host.ActualHeight * 100.0;
+
+                return (xOffset, yOffset);
+            }
+
+            return null;
+        }
 
         #endregion
     }

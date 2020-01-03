@@ -7,6 +7,7 @@
                  xmlns:local="clr-namespace:PictureAnalyser"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  xmlns:fluent="urn:fluent-ribbon"
+                 xmlns:imageViewer="clr-namespace:ImageViewer;assembly=ImageViewer"
                  mc:Ignorable="d"
                  Title="PictureAnalyser"
                  Height="720" Width="1024"
@@ -14,6 +15,7 @@
                  TitleCharacterCasing="Normal"
                  WindowTitleBrush="{DynamicResource {x:Static local:ResourceKeys.Background}}"
 
+                 TitleAlignment="Center"
                  WindowState="Maximized">
 
     <mah:MetroWindow.TitleTemplate>
@@ -30,6 +32,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <fluent:Ribbon>
@@ -46,7 +49,7 @@
                             <Path Fill="DarkOrange"
                                   Stretch="Uniform"
                                   Data="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z" />
-                            
+
                         </fluent:Button.LargeIcon>
                     </fluent:Button>
 
@@ -54,8 +57,21 @@
             </fluent:RibbonTabItem>
         </fluent:Ribbon>
 
-        <local:ImageEngine Grid.Row="1"
-                            ImagePath="{Binding ImagePath}" />
+        <imageViewer:ImageViewer Grid.Row="1"
+                                 x:Name="ImageViewer"
+                                 Background="DimGray"
+                                 ImagePath="{Binding ImagePath}" />
+
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Text="{Binding Logger.LogMessage}" />
+
+        <StatusBar Grid.Row="2">
+            <TextBlock Text="Scale: " />
+            <TextBlock Text="{Binding ElementName=ImageViewer, Path=Scale}" />
+            <TextBlock Text="%" />
+        </StatusBar>
     </Grid>
 
 </mah:MetroWindow>

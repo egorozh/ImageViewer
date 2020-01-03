@@ -9,6 +9,7 @@ namespace PictureAnalyser
         #region Public Properties
 
         public Uri ImagePath { get; set; }
+        public ILogger Logger { get; }
 
         #endregion
 
@@ -20,8 +21,9 @@ namespace PictureAnalyser
 
         #region Constructor
 
-        public MainViewModel()
+        public MainViewModel(ILogger logger)
         {
+            Logger = logger;
             OpenImageCommand = new DelegateCommand(OpenImage);
         }
 
@@ -43,7 +45,6 @@ namespace PictureAnalyser
             var path = openFileDialog.FileName;
 
             ImagePath = new Uri(path, UriKind.RelativeOrAbsolute);
-
         }
 
         #endregion

@@ -14,4 +14,8 @@
     <PackageReference Include="PropertyChanged.Fody" Version="3.2.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ImageViewer\ImageViewer.csproj" />
+  </ItemGroup>
+
 </Project>

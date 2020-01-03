@@ -22,6 +22,8 @@ namespace PictureAnalyser
 
         public IMainViewModel MainViewModel => _container.Resolve<IMainViewModel>();
 
+        public ILogger Logger => _container.Resolve<ILogger>();
+
         #endregion
 
         #region Constructor
@@ -38,6 +40,8 @@ namespace PictureAnalyser
         private void Build()
         {
             var builder = new ContainerBuilder();
+
+            builder.RegisterType<Logger>().As<ILogger>().SingleInstance();
 
             builder.RegisterType<MainViewModel>().As<IMainViewModel>().SingleInstance();
             builder.RegisterType<MainWindow>().AsSelf().SingleInstance();
