@@ -12,6 +12,8 @@ namespace ImageViewer
 
         private BitmapImage _imageSource;
 
+        private ImageViewerController _controller;
+
         /// <summary>
         /// Предыдущее значение позиции указателя мыши
         /// </summary>
@@ -48,6 +50,17 @@ namespace ImageViewer
                 viewer.ScaleChanged(scale);
         }
 
+        public static readonly DependencyProperty ControllerProperty = DependencyProperty.Register(
+            nameof(Controller), typeof(ImageViewerController), typeof(ImageViewer),
+            new PropertyMetadata(default(ImageViewerController), ControllerChanged));
+
+
+        private static void ControllerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ImageViewer viewer && e.NewValue is ImageViewerController controller)
+                viewer.ControllerChanged(controller);
+        }
+
         #endregion
 
         #region Public Properties
@@ -76,6 +89,12 @@ namespace ImageViewer
             set => SetValue(MaximumScaleProperty, value);
         }
 
+        public ImageViewerController Controller
+        {
+            get => (ImageViewerController) GetValue(ControllerProperty);
+            set => SetValue(ControllerProperty, value);
+        }
+
         #endregion
 
         #region Constructor
@@ -93,6 +112,26 @@ namespace ImageViewer
 
         #endregion
 
+        #region Internal Methods
+
+        internal void ToScale(ScaleType type)
+        {
+            if (type == ScaleType.Increase)
+            {
+                if (Scale >= MaximumScale) return;
+
+                Scale += GetAddedDeltaResolution(Scale);
+            }
+            else
+            {
+                if (Scale <= MinimumScale) return;
+
+                Scale -= GetSubtractDeltaResolution(Scale);
+            }
+        }
+
+        #endregion
+
         #region Private Methods
 
         private void ImagePathChanged(Uri source)
@@ -100,8 +139,16 @@ namespace ImageViewer
             _imageSource = new BitmapImage(source);
 
             Image.Source = _imageSource;
+            PreviewImage.Source = _imageSource;
 
             ScaleChanged(Scale);
+        }
+
+        private void ControllerChanged(ImageViewerController controller)
+        {
+            _controller = controller;
+
+            _controller?.Init(this);
         }
 
         private void ImageEngine_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -117,17 +164,6 @@ namespace ImageViewer
 
         private void ImageEngine_MouseMove(object sender, MouseEventArgs e)
         {
-#if DEBUG
-            //var offsets = GetMousePositionOffsets();
-
-            //if (offsets.HasValue)
-            //    IoC.Instance.Logger.ShowMessage($"X-Offset: {offsets.Value.Item1}%; Y-Offset: {offsets.Value.Item2}%");
-            //else
-            //    IoC.Instance.Logger.ShowMessage(string.Empty);
-
-#endif
-
-
             if (_isTranslate)
             {
                 var mousePos = e.GetPosition(this);
@@ -136,6 +172,8 @@ namespace ImageViewer
                 ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - (mousePos.Y - _prevPoint.Y));
 
                 _prevPoint = mousePos;
+
+                DrawPreviewRectangle();
 
                 Mouse.SetCursor(Cursors.Hand);
             }
@@ -153,11 +191,52 @@ namespace ImageViewer
 
         private void ScaleChanged(decimal scale)
         {
-            var width = _imageSource.PixelWidth * scale / 100m;
-            var height = _imageSource.PixelHeight * scale / 100m;
+            var width = (double) (_imageSource.PixelWidth * scale / 100m);
+            var height = (double) (_imageSource.PixelHeight * scale / 100m);
 
-            Host.Width = (double)width;
-            Host.Height = (double)height;
+            Host.Width = width;
+            Host.Height = height;
+
+            Host.UpdateLayout();
+            ScrollViewer.UpdateLayout();
+
+            // TODO: Необходимо задавать offset таким образом, чтобы 
+            // при изменении масштаба центральная точка изображения остававалась прежней
+            ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.ExtentWidth / 2);
+            ScrollViewer.ScrollToVerticalOffset(ScrollViewer.ExtentHeight / 2);
+
+            Host.UpdateLayout();
+            ScrollViewer.UpdateLayout();
+
+            if (width > ScrollViewer.ViewportWidth || height > ScrollViewer.ViewportHeight)
+            {
+                PreviewViewer.Visibility = Visibility.Visible;
+
+                PreviewViewer.UpdateLayout();
+
+                DrawPreviewRectangle();
+            }
+            else
+            {
+                PreviewViewer.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void DrawPreviewRectangle()
+        {
+            var left = PreviewCanvas.ActualWidth * ScrollViewer.HorizontalOffset / Host.Width;
+            var top = PreviewCanvas.ActualHeight * ScrollViewer.VerticalOffset / Host.Height;
+
+            var right = PreviewCanvas.ActualWidth *
+                        (ScrollViewer.HorizontalOffset + ScrollViewer.ViewportWidth) / Host.Width;
+            var bottom = PreviewCanvas.ActualHeight *
+                         (ScrollViewer.VerticalOffset + ScrollViewer.ViewportHeight) / Host.Height;
+
+            PreviewRectangle.Width = right - left;
+            PreviewRectangle.Height = bottom - top;
+
+            Canvas.SetLeft(PreviewRectangle, left);
+            Canvas.SetTop(PreviewRectangle, top);
         }
 
         private void ImageEngine_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -166,27 +245,13 @@ namespace ImageViewer
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                var delta = e.Delta;
-
-                if (delta > 0)
-                {
-                    if (Scale >= MaximumScale) return;
-
-                    Scale += GetAddedDeltaResolution(Scale / 100m) * 100m;
-                }
-                else
-                {
-                    if (Scale <= MinimumScale) return;
-
-                    Scale -= GetSubtractDeltaResolution(Scale / 100m) * 100m;
-                }
-                
-                ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.ScrollableWidth / 2);
-                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.ScrollableHeight / 2);
+                ToScale(e.Delta > 0 ? ScaleType.Increase : ScaleType.Decrease);
             }
             else
             {
                 ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - e.Delta);
+
+                DrawPreviewRectangle();
             }
         }
 
@@ -214,27 +279,8 @@ namespace ImageViewer
                 ? (decimal) Math.Pow(10, truncate - 1)
                 : (decimal) Math.Pow(10, truncate);
         }
-        
+
         #endregion
-
-        /// <summary>
-        /// Получение положения указателя мыши относительно холста в процентах
-        /// </summary>
-        /// <returns></returns>
-        private (double, double)? GetMousePositionOffsets()
-        {
-            var position = Mouse.GetPosition(Host);
-
-            if (position.X > 0 && position.Y > 0 && position.X < Host.ActualWidth && position.Y < Host.ActualHeight)
-            {
-                var xOffset = position.X / Host.ActualWidth * 100.0;
-                var yOffset = position.Y / Host.ActualHeight * 100.0;
-
-                return (xOffset, yOffset);
-            }
-
-            return null;
-        }
 
         #endregion
     }

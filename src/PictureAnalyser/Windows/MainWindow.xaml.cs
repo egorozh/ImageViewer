@@ -43,6 +43,8 @@ namespace PictureAnalyser
 
             Loaded += MainWindow_Loaded;
             Closed += MainWindow_Closed;
+
+            
         }
 
         #endregion

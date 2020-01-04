@@ -16,7 +16,9 @@
                  WindowTitleBrush="{DynamicResource {x:Static local:ResourceKeys.Background}}"
 
                  TitleAlignment="Center"
-                 WindowState="Maximized">
+                 WindowState="Maximized"
+                 
+                 local:InputBindnigsProperty.Value="{Binding KeyBindings}">
 
     <mah:MetroWindow.TitleTemplate>
         <DataTemplate>
@@ -60,7 +62,8 @@
         <imageViewer:ImageViewer Grid.Row="1"
                                  x:Name="ImageViewer"
                                  Background="DimGray"
-                                 ImagePath="{Binding ImagePath}" />
+                                 ImagePath="{Binding ImagePath}"
+                                 Controller="{Binding Controller}" />
 
         <TextBlock Grid.Row="1"
                    HorizontalAlignment="Left"

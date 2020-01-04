@@ -15,9 +15,32 @@
 
                 <Image x:Name="Image" />
 
-                <Canvas x:Name="Canvas" 
-                        Background="Transparent"/>
+                <Canvas x:Name="Canvas"
+                        Background="Transparent" />
             </Grid>
         </ScrollViewer>
+
+        <Border x:Name="PreviewViewer"
+                Visibility="Collapsed"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Left"
+                Margin="15"
+                BorderBrush="White"
+                BorderThickness="1">
+
+            <Grid>
+                <Image x:Name="PreviewImage"
+                       Height="150" />
+
+                <Canvas x:Name="PreviewCanvas"
+                        ClipToBounds="True">
+
+                    <Rectangle x:Name="PreviewRectangle"
+                               Stroke="White"
+                               StrokeThickness="0.8"
+                               Fill="#66FFFFFF" />
+                </Canvas>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
