@@ -1,0 +1,55 @@
+<Window xmlns:shapes="clr-namespace:Avalonia.Controls.Shapes;assembly=Avalonia.Controls"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AvaloniaPictureAnalyser.ViewModels;assembly=AvaloniaPictureAnalyser"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avaloniaPictureAnalyser="clr-namespace:AvaloniaPictureAnalyser"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="AvaloniaPictureAnalyser.Views.MainWindow"
+        Title="AvaloniaPictureAnalyser">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+
+
+            <!--Open Image Button-->
+            <Button Name="Открыть изображение"
+                    Command="{Binding OpenImageCommand}">
+                <Button.Content>
+
+                    <shapes:Path Fill="DarkOrange"
+                                 Stretch="Uniform"
+                                 Data="M19,20H4C2.89,20 2,19.1 2,18V6C2,4.89 2.89,4 4,4H10L12,6H19A2,2 0 0,1 21,8H21L4,8V18L6.14,10H23.21L20.93,18.5C20.7,19.37 19.92,20 19,20Z" />
+
+                </Button.Content>
+            </Button>
+
+        </StackPanel>
+
+        <avaloniaPictureAnalyser:ImageViewer Grid.Row="1"
+                                             x:Name="ImageViewer"
+                                             Background="DimGray"
+                                             ImagePath="{Binding ImagePath}"
+                                             Controller="{Binding Controller}" />
+
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Text="{Binding Logger.LogMessage}" />
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="2">
+            <TextBlock Text="Scale: " />
+            <TextBlock Text="{Binding ElementName=ImageViewer, Path=Scale}" />
+            <TextBlock Text="%" />
+        </StackPanel>
+    </Grid>
+
+</Window>

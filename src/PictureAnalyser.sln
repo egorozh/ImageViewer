@@ -5,7 +5,13 @@ VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PictureAnalyser", "PictureAnalyser\PictureAnalyser.csproj", "{42919158-52FC-442B-9B7D-CBBE4C8F6DA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageViewer", "ImageViewer\ImageViewer.csproj", "{3620FDD8-FB62-47AB-8732-EDACD8A20079}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageViewer", "ImageViewer\ImageViewer.csproj", "{3620FDD8-FB62-47AB-8732-EDACD8A20079}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Avalonia", "Avalonia", "{0B5A5DCD-0BAF-413B-918C-6C148AC65B97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WPF", "WPF", "{B42B46B4-A510-4422-B2FD-C93B8F08EBE1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaPictureAnalyser", "AvaloniaUI\AvaloniaPictureAnalyser\AvaloniaPictureAnalyser.csproj", "{5ED21314-B6A4-495F-92CF-21A58A88ECA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +27,18 @@ Global
 		{3620FDD8-FB62-47AB-8732-EDACD8A20079}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3620FDD8-FB62-47AB-8732-EDACD8A20079}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3620FDD8-FB62-47AB-8732-EDACD8A20079}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ED21314-B6A4-495F-92CF-21A58A88ECA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ED21314-B6A4-495F-92CF-21A58A88ECA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ED21314-B6A4-495F-92CF-21A58A88ECA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ED21314-B6A4-495F-92CF-21A58A88ECA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{42919158-52FC-442B-9B7D-CBBE4C8F6DA7} = {B42B46B4-A510-4422-B2FD-C93B8F08EBE1}
+		{3620FDD8-FB62-47AB-8732-EDACD8A20079} = {B42B46B4-A510-4422-B2FD-C93B8F08EBE1}
+		{5ED21314-B6A4-495F-92CF-21A58A88ECA5} = {0B5A5DCD-0BAF-413B-918C-6C148AC65B97}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C0C84E52-F676-4753-9214-2E40F825AA03}

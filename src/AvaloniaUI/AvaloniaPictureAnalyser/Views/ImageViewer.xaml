@@ -1,0 +1,47 @@
+<UserControl xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AvaloniaPictureAnalyser.ImageViewer">
+
+    <Grid>
+        <ScrollViewer Name="ScrollViewer"
+                      VerticalScrollBarVisibility="Hidden"
+                      HorizontalScrollBarVisibility="Hidden">
+
+            <Grid Name="Host"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center">
+
+                <controls:Image Name="Image" x:Name="Image"/>
+
+                <Canvas Name="Canvas"
+                        Background="Transparent" />
+            </Grid>
+        </ScrollViewer>
+
+        <Border Name="PreviewViewer"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Left"
+                Margin="15"
+                BorderBrush="White"
+                BorderThickness="1">
+
+            <Grid>
+                <Image Name="PreviewImage"
+                       Height="150" />
+
+                <Canvas Name="PreviewCanvas"
+                        ClipToBounds="True">
+
+                    <Rectangle Name="PreviewRectangle"
+                               Stroke="White"
+                               StrokeThickness="0.8"
+                               Fill="#66FFFFFF" />
+                </Canvas>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
