@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Drawing.Imaging;
 using System.Windows.Input;
 using ImageViewer;
 using Microsoft.Win32;
@@ -48,7 +49,7 @@ namespace PictureAnalyser
             var openFileDialog = new OpenFileDialog
             {
                 Title = "Выберите изображение",
-                Filter = "Pictures |*.jpg|All Files (*.*)|*.*"
+                Filter = GenerateImageFilter()
             };
 
             if (openFileDialog.ShowDialog() != true)
@@ -67,6 +68,25 @@ namespace PictureAnalyser
         private void IncreaseScale()
         {
             Controller.IncreaseScale();
+        }
+
+        private static string GenerateImageFilter()
+        {
+            var filter = "All Files (*.*)|*.*|";
+
+            var codecs = ImageCodecInfo.GetImageEncoders();
+            var sep = string.Empty;
+
+            foreach (var c in codecs)
+            {
+                var codecName = c.CodecName.Substring(8).Replace("Codec", "Files").Trim();
+                filter = $"{filter}{sep}{codecName} ({c.FilenameExtension})|{c.FilenameExtension}";
+                sep = "|";
+            }
+
+            filter = $"{filter}{sep}ICO Files (*.ICO)|*.ico";
+
+            return filter;
         }
 
         #endregion
