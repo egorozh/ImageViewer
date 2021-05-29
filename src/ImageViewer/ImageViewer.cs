@@ -3,12 +3,39 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace ImageViewer
 {
-    public partial class ImageViewer
+    [TemplatePart(Name = PART_Host, Type = typeof(Grid))]
+    [TemplatePart(Name = PART_ScrollViewer, Type = typeof(ScrollViewer))]
+    [TemplatePart(Name = PART_Image, Type = typeof(Image))]
+    [TemplatePart(Name = PART_Canvas, Type = typeof(Canvas))]
+    [TemplatePart(Name = PART_PreviewViewer, Type = typeof(Border))]
+    [TemplatePart(Name = PART_PreviewImage, Type = typeof(Image))]
+    [TemplatePart(Name = PART_PreviewCanvas, Type = typeof(Canvas))]
+    [TemplatePart(Name = PART_PreviewRectangle, Type = typeof(Rectangle))]
+    public class ImageViewer : Control
     {
         #region Private Fields
+
+        private const string PART_Host = "PART_Host";
+        private const string PART_ScrollViewer = "PART_ScrollViewer";
+        private const string PART_Image = "PART_Image";
+        private const string PART_Canvas = "PART_Canvas";
+        private const string PART_PreviewViewer = "PART_PreviewViewer";
+        private const string PART_PreviewImage = "PART_PreviewImage";
+        private const string PART_PreviewCanvas = "PART_PreviewCanvas";
+        private const string PART_PreviewRectangle = "PART_PreviewRectangle";
+
+        private Grid _host;
+        private ScrollViewer _scrollViewer;
+        private Image _image;
+        private Canvas _canvas;
+        private Border _previewViewer;
+        private Image _previewImage;
+        private Canvas _previewCanvas;
+        private Rectangle _previewRectangle;
 
         private BitmapImage _imageSource;
 
@@ -54,7 +81,6 @@ namespace ImageViewer
             nameof(Controller), typeof(ImageViewerController), typeof(ImageViewer),
             new PropertyMetadata(default(ImageViewerController), ControllerChanged));
 
-
         private static void ControllerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is ImageViewer viewer && e.NewValue is ImageViewerController controller)
@@ -99,18 +125,34 @@ namespace ImageViewer
 
         #region Constructor
 
+        static ImageViewer()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ImageViewer),
+                new FrameworkPropertyMetadata(typeof(ImageViewer)));
+        }
+
         public ImageViewer()
         {
-            InitializeComponent();
-
             PreviewMouseWheel += ImageEngine_MouseWheel;
-
-            ScrollViewer.PreviewMouseLeftButtonDown += ImageEngine_MouseLeftButtonDown;
             PreviewMouseMove += ImageEngine_MouseMove;
             PreviewMouseLeftButtonUp += ImageEngine_MouseLeftButtonUp;
         }
 
         #endregion
+
+        public override void OnApplyTemplate()
+        {
+            _host = (Grid) GetTemplateChild(PART_Host);
+            _scrollViewer = (ScrollViewer) GetTemplateChild(PART_ScrollViewer);
+            _image = (Image) GetTemplateChild(PART_Image);
+            _canvas = (Canvas) GetTemplateChild(PART_Canvas);
+            _previewViewer = (Border) GetTemplateChild(PART_PreviewViewer);
+            _previewImage = (Image) GetTemplateChild(PART_PreviewImage);
+            _previewCanvas = (Canvas) GetTemplateChild(PART_PreviewCanvas);
+            _previewRectangle = (Rectangle) GetTemplateChild(PART_PreviewRectangle);
+
+            _scrollViewer.PreviewMouseLeftButtonDown += ImageEngine_MouseLeftButtonDown;
+        }
 
         #region Internal Methods
 
@@ -138,8 +180,8 @@ namespace ImageViewer
         {
             _imageSource = new BitmapImage(source);
 
-            Image.Source = _imageSource;
-            PreviewImage.Source = _imageSource;
+            _image.Source = _imageSource;
+            _previewImage.Source = _imageSource;
 
             ScaleChanged(Scale);
         }
@@ -155,7 +197,7 @@ namespace ImageViewer
         {
             _prevPoint = e.GetPosition(this);
 
-            if (e.OriginalSource == Canvas || e.OriginalSource == ScrollViewer)
+            if (e.OriginalSource == _canvas || e.OriginalSource == _scrollViewer)
             {
                 Mouse.Capture(this);
                 _isTranslate = true;
@@ -168,8 +210,8 @@ namespace ImageViewer
             {
                 var mousePos = e.GetPosition(this);
 
-                ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.HorizontalOffset - (mousePos.X - _prevPoint.X));
-                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - (mousePos.Y - _prevPoint.Y));
+                _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.HorizontalOffset - (mousePos.X - _prevPoint.X));
+                _scrollViewer.ScrollToVerticalOffset(_scrollViewer.VerticalOffset - (mousePos.Y - _prevPoint.Y));
 
                 _prevPoint = mousePos;
 
@@ -194,49 +236,49 @@ namespace ImageViewer
             var width = (double) (_imageSource.PixelWidth * scale / 100m);
             var height = (double) (_imageSource.PixelHeight * scale / 100m);
 
-            Host.Width = width;
-            Host.Height = height;
+            _host.Width = width;
+            _host.Height = height;
 
-            Host.UpdateLayout();
-            ScrollViewer.UpdateLayout();
+            _host.UpdateLayout();
+            _scrollViewer.UpdateLayout();
 
             // TODO: Необходимо задавать offset таким образом, чтобы 
             // при изменении масштаба центральная точка изображения остававалась прежней
-            ScrollViewer.ScrollToHorizontalOffset(ScrollViewer.ExtentWidth / 2);
-            ScrollViewer.ScrollToVerticalOffset(ScrollViewer.ExtentHeight / 2);
+            _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.ExtentWidth / 2);
+            _scrollViewer.ScrollToVerticalOffset(_scrollViewer.ExtentHeight / 2);
 
-            Host.UpdateLayout();
-            ScrollViewer.UpdateLayout();
+            _host.UpdateLayout();
+            _scrollViewer.UpdateLayout();
 
-            if (width > ScrollViewer.ViewportWidth || height > ScrollViewer.ViewportHeight)
+            if (width > _scrollViewer.ViewportWidth || height > _scrollViewer.ViewportHeight)
             {
-                PreviewViewer.Visibility = Visibility.Visible;
+                _previewViewer.Visibility = Visibility.Visible;
 
-                PreviewViewer.UpdateLayout();
+                _previewViewer.UpdateLayout();
 
                 DrawPreviewRectangle();
             }
             else
             {
-                PreviewViewer.Visibility = Visibility.Collapsed;
+                _previewViewer.Visibility = Visibility.Collapsed;
             }
         }
 
         private void DrawPreviewRectangle()
         {
-            var left = PreviewCanvas.ActualWidth * ScrollViewer.HorizontalOffset / Host.Width;
-            var top = PreviewCanvas.ActualHeight * ScrollViewer.VerticalOffset / Host.Height;
+            var left = _previewCanvas.ActualWidth * _scrollViewer.HorizontalOffset / _host.Width;
+            var top = _previewCanvas.ActualHeight * _scrollViewer.VerticalOffset / _host.Height;
 
-            var right = PreviewCanvas.ActualWidth *
-                        (ScrollViewer.HorizontalOffset + ScrollViewer.ViewportWidth) / Host.Width;
-            var bottom = PreviewCanvas.ActualHeight *
-                         (ScrollViewer.VerticalOffset + ScrollViewer.ViewportHeight) / Host.Height;
+            var right = _previewCanvas.ActualWidth *
+                (_scrollViewer.HorizontalOffset + _scrollViewer.ViewportWidth) / _host.Width;
+            var bottom = _previewCanvas.ActualHeight *
+                (_scrollViewer.VerticalOffset + _scrollViewer.ViewportHeight) / _host.Height;
 
-            PreviewRectangle.Width = right - left;
-            PreviewRectangle.Height = bottom - top;
+            _previewRectangle.Width = right - left;
+            _previewRectangle.Height = bottom - top;
 
-            Canvas.SetLeft(PreviewRectangle, left);
-            Canvas.SetTop(PreviewRectangle, top);
+            Canvas.SetLeft(_previewRectangle, left);
+            Canvas.SetTop(_previewRectangle, top);
         }
 
         private void ImageEngine_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -247,9 +289,15 @@ namespace ImageViewer
             {
                 ToScale(e.Delta > 0 ? ScaleType.Increase : ScaleType.Decrease);
             }
+            else if (Keyboard.IsKeyDown(Key.LeftShift))
+            {
+                _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.HorizontalOffset - e.Delta);
+
+                DrawPreviewRectangle();
+            }
             else
             {
-                ScrollViewer.ScrollToVerticalOffset(ScrollViewer.VerticalOffset - e.Delta);
+                _scrollViewer.ScrollToVerticalOffset(_scrollViewer.VerticalOffset - e.Delta);
 
                 DrawPreviewRectangle();
             }
