@@ -1,2 +1,4 @@
-# PictureAnalyser
-Анализатор изображения. Позволяет оценить процентное соотношение нарисованной области к общей площади изображения
+# ImageViewer
+Image Viewer with Preview for WPF and AvaloniaUI
+
+
